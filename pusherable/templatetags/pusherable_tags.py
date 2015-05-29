@@ -3,9 +3,10 @@ from django.conf import settings
 
 register = template.Library()
 
+
 @register.simple_tag
 def pusherable_script():
-    return "<script src=\"//js.pusher.com/2.2/pusher.min.js\" type=\"text/javascript\"></script>"
+    return "<script src=\"//js.pusher.com/3.0/pusher.min.js\" type=\"text/javascript\"></script>"
 
 
 @register.simple_tag
