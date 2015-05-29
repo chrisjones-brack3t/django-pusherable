@@ -15,11 +15,23 @@ class PusherMixin(object):
     pusher_event_name = None
     pusher_exclude_model_fields = None
 
-    def _set_pusher(self):
+    def _object_to_json_serializable(self, object):
+        model_dict = model_to_dict(
+            object, fields=self.pusher_include_model_fields,
+            exclude=self.pusher_exclude_model_fields)
+        json_data = json.dumps(model_dict, cls=DjangoJSONEncoder)
+        data = json.loads(json_data)
+
+        return data
+
+    def set_pusher(self):
         """
         Check that pusher settings exist or raise ValidationError.
         Create Pusher on object.
         """
+        if hasattr(self, 'pusher') and isinstance(self.pusher, Pusher):
+            return
+
         app_id = getattr(settings, 'PUSHER_APP_ID', None)
         key = getattr(settings, 'PUSHER_KEY', None)
         secret = getattr(settings, 'PUSHER_SECRET', None)
