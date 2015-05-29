@@ -34,39 +34,14 @@ class PusherMixin(object):
             key=getattr(settings, 'PUSHER_KEY'),
             secret=getattr(settings, 'PUSHER_SECRET'))
 
-    def _set_pusher_channel(self):
-        """ Set the pusher channel """
+    def set_pusher_channel(self):
+        """
+        Set the pusher channel
+        <model_name>_<primary_key>
+        """
         self.channel = '{model}_{pk}'.format(
             model=self.object._meta.model_name,
             pk=self.object.pk)
-
-    def _object_to_json_serializable(self, object):
-        model_dict = model_to_dict(
-            object, fields=self.pusher_include_model_fields,
-            exclude=self.pusher_exclude_model_fields)
-        json_data = json.dumps(model_dict, cls=DjangoJSONEncoder)
-        data = json.loads(json_data)
-
-        return data
-
-    def get_pusher_event_name(self):
-        """
-        Check pusher_event_name is set and is a string.
-        Override this method to dynamically set the pusher_event_name.
-        """
-        if self.pusher_event_name is None:
-            raise ImproperlyConfigured(
-                '{0}.pusher_event_name is not set. Define '
-                '{0}.pusher_event_name, or override '
-                '{0}.get_pusher_event_name().'.format(self.__class__.__name__))
-
-        if not isinstance(self.pusher_event_name,
-                          (six.string_types, six.text_type, Promise)):
-            raise ImproperlyConfigured(
-                '{0}.pusher_event_name must be a str or unicode '
-                'object.'.format(self.__class__.__name__))
-
-        return force_text(self.pusher_event_name)
 
     def get_pusher_payload(self, data):
         """
