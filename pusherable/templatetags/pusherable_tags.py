@@ -11,23 +11,22 @@ def pusherable_script():
 
 
 @register.simple_tag
-def pusherable_subscribe(event, instance):
-
-    channel = u"{model}_{pk}".format(
-        model=instance._meta.model_name,
-        pk=instance.pk
-    )
+def pusherable_subscribe(instance):
+    """
+    Channel: <model_name>_<model_primary_key>
+    """
+    channel = '{model_name}_{model_pk}'.format(
+        model_name=instance._meta.model_name, model_pk=instance.pk)
 
     return """
-    <script type=\"text/javascript\">
-    var pusher = new Pusher('{key}');
-    var channel = pusher.subscribe('{channel}');
-    channel.bind('{event}', function(data) {{
-      pusherable_notify('{event}', data);
-    }});
+    <script>
+        var pusher = new Pusher('{api_key}'),
+            channel = pusher.subscribe('{channel}');
+        channel.bind_all(function(event, data) {{
+            if (event.indexOf('pusher:') === 0) {{
+                return false;
+            }}
+            pusherable_notify(event, data);
+        }});
     </script>
-    """.format(
-        key=settings.PUSHER_KEY,
-        channel=channel,
-        event=event
-    )
+    """.format(api_key=settings.PUSHER_KEY, channel=channel)
