@@ -72,12 +72,12 @@ class PusherMixin(object):
             'user': username
         }
 
-    def send_pusher_notification(self, data):
-        """ Sends the notification to pusher """
+    def send_pusher_notification(self, event):
+        self.set_pusher()
+        self.set_pusher_channel()
+        data = self._object_to_json_serializable(self.object)
         self.pusher.trigger(
-            [self.channel],
-            self.get_pusher_event_name(),
-            self.get_pusher_payload(data))
+            [self.channel], event, self.get_pusher_payload(data))
 
 
 class PusherUpdateMixin(PusherMixin):
