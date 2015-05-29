@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import json
-import six
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.models import model_to_dict
-from django.utils.encoding import force_text
-from django.utils.functional import Promise
 
 from pusher import Pusher
 
