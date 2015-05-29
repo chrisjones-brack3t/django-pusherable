@@ -80,52 +80,75 @@ class PusherMixin(object):
             [self.channel], event, self.get_pusher_payload(data))
 
 
-class PusherUpdateMixin(PusherMixin):
-    pusher_event_name = 'update'
+class PusherViewedMixin(PusherMixin):
+    event_name_viewed = 'viewed'
+
+    def get(self, request, *args, **kwargs):
+        response = super(PusherViewedMixin, self).get(
+            request, *args, **kwargs)
+        self.send_pusher_notification(self.event_name_viewed)
+        return response
+
+
+class PusherUpdatePendingMixin(PusherMixin):
+    event_name_update_pending = 'update_pending'
+
+    def get(self, request, *args, **kwargs):
+        response = super(PusherUpdatePendingMixin, self).get(
+            request, *args, **kwargs)
+        self.send_pusher_notification(self.event_name_update_pending)
+        return response
+
+
+class PusherUpdateSucceededMixin(PusherMixin):
+    event_name_update_success = 'update_succeeded'
 
     def form_valid(self, form):
-        """
-        Call super first to make sure the object saves.
-        Call pusher methods and send notification.
-        """
-        response = super(PusherUpdateMixin, self).form_valid(form)
-
-        self._set_pusher()
-        self._set_pusher_channel()
-        data = self._object_to_json_serializable(self.object)
-        self.send_pusher_notification(data)
-
+        response = super(PusherUpdateSucceededMixin, self).form_valid(form)
+        self.send_pusher_notification(self.event_name_update_success)
         return response
 
 
-class PusherDetailMixin(PusherMixin):
-    pusher_event_name = 'view'
+class PusherUpdateFailedMixin(PusherMixin):
+    event_name_update_fail = 'update_failed'
 
-    def render_to_response(self, context, **kwargs):
-        """
-        Generate Response first.
-        Send pusher notification.
-        """
-        response = super(PusherDetailMixin, self).render_to_response(
-            context, **kwargs)
-
-        self._set_pusher()
-        self._set_pusher_channel()
-        data = self._object_to_json_serializable(self.object)
-        self.send_pusher_notification(data)
-
+    def form_invalid(self, form):
+        self.send_pusher_notification(self.event_name_update_fail)
+        response = super(PusherUpdateFailedMixin, self).form_valid(form)
         return response
 
 
-class PusherDeleteMixin(PusherMixin):
-    pusher_event_name = 'delete'
+class PusherDeletePendingMixin(PusherMixin):
+    event_name_delete_pending = 'delete_pending'
+
+    def get(self, request, *args, **kwargs):
+        response = super(PusherDeletePendingMixin, self).get(
+            request, *args, **kwargs)
+        self.send_pusher_notification(self.event_name_delete_pending)
+        return response
+
+
+class PusherDeleteSucceededMixin(PusherMixin):
+    event_name_delete_succeeded = 'delete_succeeded'
 
     def delete(self, *args, **kwargs):
-        response = super(PusherDeleteMixin, self).delete(*args, **kwargs)
+        """
+        TODO: Verify this approach won't cause problems or find another
+        way.
 
-        self._set_pusher()
-        self._set_pusher_channel()
-        data = self._object_to_json_serializable(self.object)
-        self.send_pusher_notification(data)
 
+        Not sure if I like this implementation. It feels sketchy.
+        We hold onto a copy of the obj before it is deleted. After
+        the super call (object should be deleted at that point)
+        we set the copied object back on self so that it can be used
+        by the mixin to connect to the pusher channel. Could just
+        call the pusher notification before the super call but it
+        is possible that the delete is not successful and thus
+        we've given the user false information.
+        """
+        obj = self.get_object()
+        response = super(PusherDeleteSucceededMixin, self).delete(
+            *args, **kwargs)
+        self.object = obj
+        self.send_pusher_notification(self.event_name_delete_succeeded)
         return response
