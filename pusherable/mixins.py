@@ -12,7 +12,6 @@ from pusher import Pusher
 
 class PusherMixin(object):
     pusher_include_model_fields = None
-    pusher_event_name = None
     pusher_exclude_model_fields = None
 
     def _object_to_json_serializable(self, object):
